@@ -1,0 +1,48 @@
+# Import necessary libraries
+import numpy as np
+import pandas as pd
+from pgmpy.estimators import MaximumLikelihoodEstimator
+from pgmpy.models import DiscreteBayesianNetwork
+from pgmpy.inference import VariableElimination
+
+# Load the dataset
+hD = pd.read_csv('heart.csv')
+hD = hD.replace('?', np.nan)
+print("Dataset loaded successfully!")
+print(hD.head())
+
+# Define the Bayesian Model structure
+model = DiscreteBayesianNetwork([
+    ('age', 'target'),
+    ('sex', 'target'),
+    ('cp', 'target'),
+    ('trestbps', 'target'),
+    ('chol', 'target'),
+    ('fbs', 'target'),
+    ('restecg', 'target'),
+    ('thalach', 'target'),
+    ('exang', 'target'),
+    ('oldpeak', 'target'),
+    ('slope', 'target'),
+    ('ca', 'target'),
+    ('thal', 'target')
+])
+
+# Learn CPDs using Maximum Likelihood Estimation
+print("\nLearning CPDs using Maximum Likelihood Estimators...")
+model.fit(hD, estimator=MaximumLikelihoodEstimator)
+print("Model training complete!")
+
+# Perform inference
+print("\nPerforming inference...")
+hD_infer = VariableElimination(model)
+
+# Query 1: Probability of heart disease given restecg = 1
+print("\n1️.Probability of heart disease given evidence: restecg = 1")
+q1 = hD_infer.query(variables=['target'], evidence={'restecg': 1})
+print(q1)
+
+# Query 2: Probability of heart disease given evidence: age = 57
+print("\n2️.Probability of heart disease given evidence: age = 57")
+q2 = hD_infer.query(variables=['target'], evidence={'age': 57})
+print(q2)
